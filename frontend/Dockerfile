@@ -1,5 +1,5 @@
 # Step 1: Build assets
-FROM node:18-alpine AS build
+FROM node:22-alpine AS build
 
 WORKDIR /app
 
