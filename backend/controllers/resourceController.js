@@ -1,7 +1,7 @@
 const pool = require('../config/db');
 
 /**
- * Get all resources (supports optional search and category filters)
+ * Get all resources (supports optional search and availability filters)
  */
 const getResources = async (req, res) => {
   try {
@@ -22,11 +22,11 @@ const getResources = async (req, res) => {
     query += ' ORDER BY id DESC';
 
     const [resources] = await pool.query(query, params);
-    
-    // Map database tinyint availability to boolean for cleaner JSON API responses
+
     const formattedResources = resources.map(res => ({
       ...res,
-      availability: !!res.availability
+      availability: !!res.availability,
+      price: parseFloat(res.price) || 0
     }));
 
     res.json(formattedResources);
@@ -40,7 +40,7 @@ const getResources = async (req, res) => {
  * Create a resource (Admin only)
  */
 const createResource = async (req, res) => {
-  const { name, description, capacity, image_url, availability } = req.body;
+  const { name, description, capacity, image_url, availability, price } = req.body;
 
   if (!name || !capacity) {
     return res.status(400).json({ message: 'Resource name and capacity are required' });
@@ -48,9 +48,11 @@ const createResource = async (req, res) => {
 
   try {
     const isAvailable = availability !== undefined ? (availability ? 1 : 0) : 1;
+    const resourcePrice = parseFloat(price) || 0;
+
     const [result] = await pool.query(
-      'INSERT INTO resources (name, description, capacity, image_url, availability) VALUES (?, ?, ?, ?, ?)',
-      [name, description, capacity, image_url || '', isAvailable]
+      'INSERT INTO resources (name, description, capacity, image_url, availability, price) VALUES (?, ?, ?, ?, ?, ?)',
+      [name, description || '', capacity, image_url || '', isAvailable, resourcePrice]
     );
 
     res.status(201).json({
@@ -61,7 +63,8 @@ const createResource = async (req, res) => {
         description,
         capacity,
         image_url: image_url || '',
-        availability: !!isAvailable
+        availability: !!isAvailable,
+        price: resourcePrice
       }
     });
   } catch (error) {
@@ -75,7 +78,7 @@ const createResource = async (req, res) => {
  */
 const updateResource = async (req, res) => {
   const { id } = req.params;
-  const { name, description, capacity, image_url, availability } = req.body;
+  const { name, description, capacity, image_url, availability, price } = req.body;
 
   if (!name || !capacity) {
     return res.status(400).json({ message: 'Resource name and capacity are required' });
@@ -84,13 +87,15 @@ const updateResource = async (req, res) => {
   try {
     const [existing] = await pool.query('SELECT * FROM resources WHERE id = ?', [id]);
     if (existing.length === 0) {
-      return res.status(444).json({ message: 'Resource not found' });
+      return res.status(404).json({ message: 'Resource not found' });
     }
 
     const isAvailable = availability !== undefined ? (availability ? 1 : 0) : 1;
+    const resourcePrice = parseFloat(price) || 0;
+
     await pool.query(
-      'UPDATE resources SET name = ?, description = ?, capacity = ?, image_url = ?, availability = ? WHERE id = ?',
-      [name, description, capacity, image_url || '', isAvailable, id]
+      'UPDATE resources SET name = ?, description = ?, capacity = ?, image_url = ?, availability = ?, price = ? WHERE id = ?',
+      [name, description || '', capacity, image_url || '', isAvailable, resourcePrice, id]
     );
 
     res.json({
@@ -101,7 +106,8 @@ const updateResource = async (req, res) => {
         description,
         capacity,
         image_url: image_url || '',
-        availability: !!isAvailable
+        availability: !!isAvailable,
+        price: resourcePrice
       }
     });
   } catch (error) {

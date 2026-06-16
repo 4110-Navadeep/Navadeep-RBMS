@@ -12,7 +12,8 @@ import {
   Settings, 
   BarChart3, 
   Users as UsersIcon,
-  BookOpen
+  BookOpen,
+  Tag
 } from 'lucide-react';
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
@@ -35,6 +36,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
   const adminLinks = [
     { name: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
     { name: 'Manage Resources', path: '/admin/resources', icon: Layers },
+    { name: 'Manage Pricing', path: '/admin/pricing', icon: Tag },
     { name: 'Manage Bookings', path: '/admin/bookings', icon: CalendarDays },
     { name: 'Users', path: '/admin/users', icon: UsersIcon },
     { name: 'Reports', path: '/admin/reports', icon: BarChart3 },

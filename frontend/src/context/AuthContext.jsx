@@ -12,7 +12,7 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const storedUser = localStorage.getItem('rbms_user');
     const storedToken = localStorage.getItem('rbms_token');
-    
+
     if (storedUser && storedToken) {
       try {
         setUser(JSON.parse(storedUser));
@@ -31,7 +31,6 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await api.post('/auth/login', { email, password });
       const { token, user: userData } = response.data;
-      
       localStorage.setItem('rbms_token', token);
       localStorage.setItem('rbms_user', JSON.stringify(userData));
       setUser(userData);
@@ -49,7 +48,6 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await api.post('/auth/register', { name, email, password });
       const { token, user: userData } = response.data;
-      
       localStorage.setItem('rbms_token', token);
       localStorage.setItem('rbms_user', JSON.stringify(userData));
       setUser(userData);
@@ -61,6 +59,13 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Update profile action — syncs updated user into context + localStorage
+  const updateProfile = (updatedUser) => {
+    const merged = { ...user, ...updatedUser };
+    setUser(merged);
+    localStorage.setItem('rbms_user', JSON.stringify(merged));
+  };
+
   // Logout action
   const logout = () => {
     localStorage.removeItem('rbms_token');
@@ -69,7 +74,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, error, login, register: registerUser, logout }}>
+    <AuthContext.Provider value={{ user, loading, error, login, register: registerUser, updateProfile, logout }}>
       {children}
     </AuthContext.Provider>
   );

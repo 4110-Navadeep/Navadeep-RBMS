@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const pool = require('./config/db');
 const seedData = require('./seed');
+const { verifyEmailConnection } = require('./services/emailService');
 
 require('dotenv').config();
 
@@ -18,14 +19,23 @@ app.use(express.json());
 const authRoutes = require('./routes/authRoutes');
 const resourceRoutes = require('./routes/resourceRoutes');
 const bookingRoutes = require('./routes/bookingRoutes');
+const profileRoutes = require('./routes/profileRoutes');
+const pricingRoutes = require('./routes/pricingRoutes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/resources', resourceRoutes);
 app.use('/api/bookings', bookingRoutes);
+app.use('/api/profile', profileRoutes);
+app.use('/api/pricing', pricingRoutes);
 
 // Base route
 app.get('/', (req, res) => {
-  res.json({ message: 'Welcome to the Resource Booking Management System API' });
+  res.json({ message: 'Welcome to the Resource Booking Management System API', version: '2.0.0' });
+});
+
+// Health check
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
 // Database and server bootstrap
@@ -42,7 +52,7 @@ const startServer = async () => {
       const schemaPath = path.join(__dirname, 'schema.sql');
       if (fs.existsSync(schemaPath)) {
         const schemaSql = fs.readFileSync(schemaPath, 'utf8');
-        
+
         // Split queries by semicolon (ignoring comments/empty lines)
         const queries = schemaSql
           .split(';')
@@ -57,19 +67,27 @@ const startServer = async () => {
         console.warn('⚠ schema.sql not found at:', schemaPath);
       }
     } catch (schemaError) {
-      console.error('Failed to run schema queries. Database tables may already exist.', schemaError);
+      console.error('Failed to run schema queries. Database tables may already exist.', schemaError.message);
     }
+
+    // Run dynamic migrations to ensure new columns exist
+    const runMigrations = require('./config/migration');
+    await runMigrations();
 
     // Run database seeder
     await seedData();
 
+    // Verify SMTP email connection
+    await verifyEmailConnection();
+
     // Start Express listener
     app.listen(PORT, () => {
       console.log(`✔ Backend server running on http://localhost:${PORT}`);
+      console.log(`  → API base: http://localhost:${PORT}/api`);
+      console.log(`  → Health:   http://localhost:${PORT}/health`);
     });
   } catch (error) {
     console.error('CRITICAL: Server initialization failed:', error);
-    // If database connection fails, let's wait and retry or start server anyway (useful for docker-compose start order)
     console.log('Starting express server anyway so health checks/container does not immediately exit...');
     app.listen(PORT, () => {
       console.log(`✔ Backend server running on http://localhost:${PORT} (Database offline)`);

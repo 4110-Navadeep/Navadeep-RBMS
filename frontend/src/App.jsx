@@ -11,6 +11,8 @@ import BookingHistory from './pages/BookingHistory';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminResources from './pages/AdminResources';
 import AdminBookings from './pages/AdminBookings';
+import AdminPricing from './pages/AdminPricing';
+import Profile from './pages/Profile';
 import PlaceholderPage from './pages/PlaceholderPage';
 
 // Protected Route Component for general logged-in users
@@ -67,62 +69,43 @@ function App() {
 
           {/* User Protected Routes */}
           <Route path="/dashboard" element={
-            <ProtectedRoute>
-              <UserDashboard />
-            </ProtectedRoute>
+            <ProtectedRoute><UserDashboard /></ProtectedRoute>
           } />
           <Route path="/resources" element={<ResourceListing />} />
           <Route path="/resources/:id" element={
-            <ProtectedRoute>
-              <ResourceDetails />
-            </ProtectedRoute>
+            <ProtectedRoute><ResourceDetails /></ProtectedRoute>
           } />
           <Route path="/bookings" element={
-            <ProtectedRoute>
-              <BookingHistory />
-            </ProtectedRoute>
+            <ProtectedRoute><BookingHistory /></ProtectedRoute>
           } />
           <Route path="/profile" element={
-            <ProtectedRoute>
-              <PlaceholderPage title="User Profile" />
-            </ProtectedRoute>
+            <ProtectedRoute><Profile /></ProtectedRoute>
           } />
           <Route path="/notifications" element={
-            <ProtectedRoute>
-              <PlaceholderPage title="Notifications" />
-            </ProtectedRoute>
+            <ProtectedRoute><PlaceholderPage title="Notifications" /></ProtectedRoute>
           } />
 
           {/* Admin Protected Routes */}
           <Route path="/admin/dashboard" element={
-            <AdminRoute>
-              <AdminDashboard />
-            </AdminRoute>
+            <AdminRoute><AdminDashboard /></AdminRoute>
           } />
           <Route path="/admin/resources" element={
-            <AdminRoute>
-              <AdminResources />
-            </AdminRoute>
+            <AdminRoute><AdminResources /></AdminRoute>
           } />
           <Route path="/admin/bookings" element={
-            <AdminRoute>
-              <AdminBookings />
-            </AdminRoute>
+            <AdminRoute><AdminBookings /></AdminRoute>
+          } />
+          <Route path="/admin/pricing" element={
+            <AdminRoute><AdminPricing /></AdminRoute>
           } />
           <Route path="/admin/users" element={
-            <AdminRoute>
-              <PlaceholderPage title="Manage Users" />
-            </AdminRoute>
+            <AdminRoute><PlaceholderPage title="Manage Users" /></AdminRoute>
           } />
           <Route path="/admin/reports" element={
-            <AdminRoute>
-              <PlaceholderPage title="Analytics & Reports" />
-            </AdminRoute>
+            <AdminRoute><PlaceholderPage title="Analytics & Reports" /></AdminRoute>
           } />
           <Route path="/admin/settings" element={
-            <AdminRoute>
-              <PlaceholderPage title="System Settings" />
-            </AdminRoute>
+            <AdminRoute><PlaceholderPage title="System Settings" /></AdminRoute>
           } />
 
           {/* Catch-all route */}
