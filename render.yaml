@@ -1,0 +1,72 @@
+services:
+  # 1. MySQL Database Service (Private Service)
+  - type: pserv
+    name: rbms-mysql
+    env: docker
+    image:
+      url: docker.io/library/mysql:8.0
+    # Note: To persist data on Render, you must attach a Disk (requires a paid tier).
+    # If you are on the free tier, the database data will be reset on restarts.
+    # Alternatively, you can use a free external database provider (e.g., Aiven)
+    # and update the DB_* environment variables in the Render Dashboard.
+    # disk:
+    #   name: mysql-db-data
+    #   mountPath: /var/lib/mysql
+    #   sizeGB: 1
+    envVars:
+      - key: MYSQL_ROOT_PASSWORD
+        generateValue: true
+      - key: MYSQL_DATABASE
+        value: resource_booking_db
+
+  # 2. Node.js Backend Service (Web Service)
+  - type: web
+    name: rbms-backend
+    env: node
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: DB_HOST
+        fromService:
+          name: rbms-mysql
+          type: pserv
+          property: host
+      - key: DB_PORT
+        value: 3306
+      - key: DB_USER
+        value: root
+      - key: DB_PASSWORD
+        fromService:
+          name: rbms-mysql
+          type: pserv
+          envVarKey: MYSQL_ROOT_PASSWORD
+      - key: DB_NAME
+        value: resource_booking_db
+      - key: JWT_SECRET
+        generateValue: true
+      - key: EMAIL_USER
+        sync: false
+      - key: EMAIL_PASS
+        sync: false
+
+  # 3. React Frontend Service (Static Site)
+  - type: static
+    name: rbms-frontend
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    routes:
+      # Direct all routing requests to index.html for React Router compatibility
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          name: rbms-backend
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL
