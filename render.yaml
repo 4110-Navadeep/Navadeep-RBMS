@@ -29,14 +29,14 @@ services:
     healthCheckPath: /health
     envVars:
       - key: PORT
-        value: 10000
+        value: "10000"
       - key: DB_HOST
         fromService:
           name: rbms-mysql
           type: pserv
           property: host
       - key: DB_PORT
-        value: 3306
+        value: "3306"
       - key: DB_USER
         value: root
       - key: DB_PASSWORD
